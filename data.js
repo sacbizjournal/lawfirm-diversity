@@ -1,4 +1,4 @@
-export default [
+const lawFirmsData = [
     {
         name: 'Downey Brand LLP',
         fPercentage: 0.47,
@@ -407,4 +407,7 @@ export default [
         locallyBased: 'Y',
         totalAttorney: 1,
     },
-]
+];
+
+// Make data available globally
+window.lawFirmsData = lawFirmsData; 
