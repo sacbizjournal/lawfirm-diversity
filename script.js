@@ -2,10 +2,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Get data from global scope
     const data = window.lawFirmsData;
-    
-    // Set up the chart dimensions
+
+    // Set up initial chart dimensions
     const margin = { top: 40, right: 200, bottom: 60, left: 40 };
-    const width = 1200 - margin.left - margin.right;
+    let width = document.getElementById('chart').clientWidth - margin.left - margin.right;
     const height = 500 - margin.top - margin.bottom;
 
     // Create tooltip div
@@ -23,166 +23,128 @@ document.addEventListener('DOMContentLoaded', () => {
         .attr('transform', `translate(${margin.left},${margin.top})`);
 
     // Create scales
-    const xScale = d3.scaleLinear()
-        .domain([0, 1])
-        .range([0, width]);
-
-    // Scale for circle sizes
+    const xScale = d3.scaleLinear().domain([0, 1]).range([0, width]);
     const sizeScale = d3.scaleSqrt()
         .domain([0, d3.max(data, d => d.totalAttorney)])
-        .range([4, 25]);
+        .range([3, 18]);
 
-    // Draw the center line
-    svg.append('line')
+    // Draw the center 50% line
+    const centerLine = svg.append('line')
         .attr('class', 'center-line')
-        .attr('x1', xScale(0.5))
-        .attr('y1', 0)
-        .attr('x2', xScale(0.5))
-        .attr('y2', height)
         .style('stroke', '#999')
         .style('stroke-width', '1px')
         .style('stroke-dasharray', '4');
 
     // Create a group for the dots
-    const dotsGroup = svg.append('g')
-        .attr('class', 'dots');
+    const dotsGroup = svg.append('g').attr('class', 'dots');
 
-    // Initialize the dots with starting positions
+    // Initialize the dots
     const dots = dotsGroup.selectAll('.dot')
         .data(data)
         .join('circle')
         .attr('class', 'dot')
         .attr('r', d => sizeScale(d.totalAttorney))
-        .attr('cx', d => xScale(d.fPercentage))
-        .attr('cy', height / 2)
         .style('fill', d => d.locallyBased === 'Y' ? '#4e79a7' : '#e15759')
         .style('stroke', '#fff')
         .style('stroke-width', '1px')
         .style('opacity', 0.7);
 
     // Add mouse events for tooltips
-    dots.on('mouseover', function(event, d) {
-        const [mouseX, mouseY] = d3.pointer(event, document.body);
-        
-        d3.select(this)
-            .style('opacity', 1)
-            .style('stroke', '#000')
-            .style('stroke-width', '2px');
-            
-        tooltip.transition()
-            .duration(200)
-            .style('opacity', 1);
-            
+    dots.on('mouseover', function (event, d) {
+        d3.select(this).style('opacity', 1).style('stroke', '#000').style('stroke-width', '2px');
+
+        tooltip.transition().duration(200).style('opacity', 1);
         tooltip.html(`
             <div class="firm-name">${d.name}</div>
             <div class="info-row">Total Attorneys: ${d.totalAttorney}</div>
             <div class="info-row">Female Attorneys: ${(d.fPercentage * 100).toFixed(1)}%</div>
             <div class="info-row">${d.locallyBased === 'Y' ? 'Locally Based' : 'Non-Local'}</div>
         `)
-        .style('left', `${mouseX + 10}px`)
-        .style('top', `${mouseY - 10}px`);
+        .style('left', `${event.pageX + 10}px`)
+        .style('top', `${event.pageY - 10}px`);
     })
-    .on('mousemove', function(event) {
-        const [mouseX, mouseY] = d3.pointer(event, document.body);
-        tooltip
-            .style('left', `${mouseX + 10}px`)
-            .style('top', `${mouseY - 10}px`);
+    .on('mousemove', function (event) {
+        tooltip.style('left', `${event.pageX + 10}px`).style('top', `${event.pageY - 10}px`);
     })
-    .on('mouseout', function() {
-        d3.select(this)
-            .style('opacity', 0.7)
-            .style('stroke', '#fff')
-            .style('stroke-width', '1px');
-            
-        tooltip.transition()
-            .duration(500)
-            .style('opacity', 0);
+    .on('mouseout', function () {
+        d3.select(this).style('opacity', 0.7).style('stroke', '#fff').style('stroke-width', '1px');
+        tooltip.transition().duration(500).style('opacity', 0);
     });
 
     // Create and start the simulation
     const simulation = d3.forceSimulation(data)
         .force('x', d3.forceX(d => xScale(d.fPercentage)).strength(1))
         .force('y', d3.forceY(height / 2).strength(0.1))
-        .force('collision', d3.forceCollide().radius(d => sizeScale(d.totalAttorney) + 1).strength(0.7))
+        .force('collision', d3.forceCollide().radius(d => sizeScale(d.totalAttorney) + 2).strength(0.8))
         .alphaDecay(0.01);
 
-    // Update dot positions on each tick of the simulation
     simulation.on('tick', () => {
-        dots
-            .attr('cx', d => Math.max(sizeScale(d.totalAttorney), Math.min(width - sizeScale(d.totalAttorney), d.x)))
+        dots.attr('cx', d => Math.max(sizeScale(d.totalAttorney), Math.min(width - sizeScale(d.totalAttorney), d.x)))
             .attr('cy', d => Math.max(sizeScale(d.totalAttorney), Math.min(height - sizeScale(d.totalAttorney), d.y)));
     });
 
     // Add x-axis
-    const xAxis = d3.axisBottom(xScale)
-        .tickFormat(d3.format('.0%'))
-        .ticks(10);
-    
-    svg.append('g')
-        .attr('transform', `translate(0,${height})`)
-        .call(xAxis);
+    const xAxis = d3.axisBottom(xScale).tickFormat(d3.format('.0%')).ticks(10);
+    const xAxisGroup = svg.append('g').attr('class', 'x-axis').attr('transform', `translate(0,${height})`);
+    xAxisGroup.call(xAxis);
 
-    // Add labels
+    // Add axis label
     svg.append('text')
         .attr('class', 'axis-label')
         .attr('x', width / 2)
         .attr('y', height + 40)
         .attr('text-anchor', 'middle')
         .style('font-size', '14px')
-        .text('Percentage of Female Attorneys');
+        .text('Percentage of female attorneys');
 
     // Add legend
-    const legend = svg.append('g')
-        .attr('transform', `translate(${width + 20}, 20)`);
+    const legend = svg.append('g');
 
-    // Legend for locally based
-    legend.append('text')
-        .attr('x', 0)
-        .attr('y', 0)
-        .attr('font-weight', 'bold')
-        .text('Location');
+    function updateChart() {
+        width = document.getElementById('chart').clientWidth - margin.left - margin.right;
+        xScale.range([0, width]);
 
-    legend.append('circle')
-        .attr('cx', 10)
-        .attr('cy', 20)
-        .attr('r', 6)
-        .style('fill', '#4e79a7');
+        d3.select('svg').attr('width', width + margin.left + margin.right);
+        xAxisGroup.call(xAxis);
 
-    legend.append('text')
-        .attr('x', 25)
-        .attr('y', 25)
-        .text('Locally Based');
+        // update center line
+        centerLine.attr('x1', xScale(0.5)).attr('y1', 0).attr('x2', xScale(0.5)).attr('y2', height);
 
-    legend.append('circle')
-        .attr('cx', 10)
-        .attr('cy', 45)
-        .attr('r', 6)
-        .style('fill', '#e15759');
+        // update axis label
+        d3.select('.axis-label')
+            .attr('x', width / 2); // Update position dynamically
 
-    legend.append('text')
-        .attr('x', 25)
-        .attr('y', 50)
-        .text('Non-Local');
+        // update legend position
+        legend.attr('transform', `translate(5, 5)`).html(`
+            <text x="0" y="0" font-weight="bold">Location</text>
+            <circle cx="10" cy="20" r="6" fill="#4e79a7"></circle>
+            <text x="25" y="25">Locally Based</text>
+            <circle cx="10" cy="45" r="6" fill="#e15759"></circle>
+            <text x="25" y="50">Non-Local</text>
+        `);            
+        // <text x="0" y="80" font-weight="bold">Total Attorneys</text>
 
-    // Legend for size
-    legend.append('text')
-        .attr('x', 0)
-        .attr('y', 80)
-        .attr('font-weight', 'bold')
-        .text('Total Attorneys');
+        // // Size legend dynamically
+        // const sizeLegendValues = [75, 40, 10];
+        // sizeLegendValues.forEach((value, i) => {
+        //     legend.append('circle')
+        //         .attr('cx', 10)
+        //         .attr('cy', 110 + i * 25)
+        //         .attr('r', sizeScale(value))
+        //         .style('fill', 'none')
+        //         .style('stroke', '#666');
 
-    const sizeLegendValues = [75, 40, 10];
-    sizeLegendValues.forEach((value, i) => {
-        legend.append('circle')
-            .attr('cx', 10)
-            .attr('cy', 110 + i * 25)
-            .attr('r', sizeScale(value))
-            .style('fill', 'none')
-            .style('stroke', '#666');
+        //     legend.append('text')
+        //         .attr('x', 25)
+        //         .attr('y', 115 + i * 25)
+        //         .text(value);
+        // });
 
-        legend.append('text')
-            .attr('x', 25)
-            .attr('y', 115 + i * 25)
-            .text(value);
-    });
-}); 
+        simulation.force('x', d3.forceX(d => xScale(d.fPercentage)).strength(1));
+        simulation.alpha(1).restart();
+    }
+
+    // Resize event listener
+    window.addEventListener('resize', updateChart);
+    updateChart();
+});
