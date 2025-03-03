@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Law Firms Gender Distribution</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #fff;
+        }
+        .title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            position: relative;
+        }
+        .dot {
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            cursor: pointer;
+        }
+        .dot:hover {
+            opacity: 1;
+        }
+        .axis-label {
+            font-size: 12px;
+        }
+        .center-line {
+            stroke: #999;
+            stroke-dasharray: 4;
+        }
+        .legend text {
+            font-size: 12px;
+        }
+        .tick text {
+            font-size: 12px;
+        }
+        .tick line {
+            stroke: #ddd;
+        }
+        .tooltip {
+            position: absolute;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 300px;
+            z-index: 1000;
+        }
+        .tooltip .firm-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+        .tooltip .info-row {
+            margin: 3px 0;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">
+        <h1>Law Firms Gender Distribution</h1>
+        <p>Distribution of law firms by percentage of female attorneys and firm size</p>
+    </div>
+    <div class="chart-container" id="chart"></div>
+    <!-- Load data first, then the visualization script -->
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
