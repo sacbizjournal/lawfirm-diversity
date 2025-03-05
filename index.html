@@ -8,16 +8,14 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
+            padding: 20px;
             background-color: #fff;
-        }
-        .title {
-            text-align: left;
-            margin-bottom: 20px;
+            box-sizing: border-box;
         }
         .chart-container {
             width: 100%;
-            max-width: auto;
+            max-width: 1200px;
             margin: 0 auto;
             background-color: #fff;
             position: relative;
@@ -36,15 +34,6 @@
         .center-line {
             stroke: #999;
             stroke-dasharray: 4;
-        }
-        .legend text {
-            font-size: 10px;
-        }
-        .tick text {
-            font-size: 12px;
-        }
-        .tick line {
-            stroke: #ddd;
         }
         .tooltip {
             position: absolute;
@@ -67,12 +56,35 @@
             margin: 3px 0;
             color: #555;
         }
+        .chart-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .chart-subtitle {
+            font-size: 14px;
+            color: #666;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .chart-title {
+                font-size: 16px;
+            }
+            .chart-subtitle {
+                font-size: 12px;
+            }
+            .tooltip {
+                max-width: 200px;
+                font-size: 12px;
+            }
+            .tooltip .firm-name {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="title">
-        <h3>Distribution of Sacramento-area law firms by % of female attorneys and firm size</h3>
-    </div>
     <div class="chart-container" id="chart"></div>
     <!-- Load data first, then the visualization script -->
     <script src="data.js"></script>
