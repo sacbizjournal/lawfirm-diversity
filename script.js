@@ -177,14 +177,35 @@ function createVisualization(width, height) {
             <div class="info-row">Total Attorneys: ${d.totalAttorney}</div>
             <div class="info-row">Female Attorneys: ${(d.fPercentage * 100).toFixed(1)}%</div>
             <div class="info-row">${d.locallyBased === 'Y' ? 'Locally Based' : 'Non-Local'}</div>
-        `)
-        .style('left', `${mouseX + 10}px`)
-        .style('top', `${mouseY - 10}px`);
+        `);
+
+        // Get window width and tooltip width
+        const windowWidth = window.innerWidth;
+        const tooltipWidth = tooltip.node().getBoundingClientRect().width;
+        
+        // If tooltip would extend beyond right edge, show it on the left side instead
+        const tooltipX = mouseX + tooltipWidth + 10 > windowWidth 
+            ? mouseX - tooltipWidth - 10 
+            : mouseX + 10;
+            
+        tooltip
+            .style('left', `${tooltipX}px`)
+            .style('top', `${mouseY - 10}px`);
     })
     .on('mousemove', function(event) {
         const [mouseX, mouseY] = d3.pointer(event, document.body);
+        
+        // Get window width and tooltip width
+        const windowWidth = window.innerWidth;
+        const tooltipWidth = tooltip.node().getBoundingClientRect().width;
+        
+        // If tooltip would extend beyond right edge, show it on the left side instead
+        const tooltipX = mouseX + tooltipWidth + 10 > windowWidth 
+            ? mouseX - tooltipWidth - 10 
+            : mouseX + 10;
+            
         tooltip
-            .style('left', `${mouseX + 10}px`)
+            .style('left', `${tooltipX}px`)
             .style('top', `${mouseY - 10}px`);
     })
     .on('mouseout', function() {
