@@ -1,57 +1,71 @@
 // Create the visualization with given dimensions
 function createVisualization(width, height, filterType = 'all') {
-    // Clear any existing visualization
-    d3.select('#chart').selectAll('*').remove();
+    // Clear any existing visualization and set up container
+    const chartContainer = d3.select('#chart')
+        .style('position', 'relative')
+        .style('width', '100%')
+        .style('height', 'auto')
+        .style('overflow', 'hidden');
+        
+    chartContainer.selectAll('*').remove();
 
-    // Get data from global scope and filter based on type
-    let data = window.lawFirmsData;
+    // Get data from global scope
+    let fullData = window.lawFirmsData;
+    
+    // Set up the chart dimensions with adjusted margins
+    const margin = { 
+        top: width < 600 ? 120 : 100,    // Reduced top margin
+        right: 30,
+        bottom: 40,  // Reduced bottom margin
+        left: 40
+    };
+    const chartWidth = width - margin.left - margin.right;
+    const chartHeight = height - margin.top - margin.bottom;
+
+    // Scale for circle sizes - make circles smaller on small screens
+    const sizeScale = d3.scaleSqrt()
+        .domain([0, d3.max(fullData, d => d.totalAttorney)])
+        .range([width < 600 ? 2 : 4, Math.min(width < 600 ? 15 : 25, chartWidth / 40)]);
+
+    // Then filter data based on type
+    let data = fullData;
     if (filterType === 'local') {
         data = data.filter(d => d.locallyBased === 'Y');
     } else if (filterType === 'nonlocal') {
         data = data.filter(d => d.locallyBased === 'N');
     }
-    
-    // Set up the chart dimensions with adjusted margins
-    const margin = { 
-        top: width < 600 ? 160 : 120,    // Increased top margin to prevent overlap
-        right: 40,
-        bottom: 60,
-        left: 40
-    };
-    const chartWidth = width - margin.left - margin.right;
-    const chartHeight = height - margin.top - margin.bottom;
 
     // Create scales first
     const xScale = d3.scaleLinear()
         .domain([0, 1])
         .range([0, chartWidth]);
 
-    // Scale for circle sizes - make circles smaller on small screens
-    const sizeScale = d3.scaleSqrt()
-        .domain([0, d3.max(data, d => d.totalAttorney)])
-        .range([width < 600 ? 2 : 4, Math.min(width < 600 ? 15 : 25, chartWidth / 40)]);
-
-    // Create tooltip div
-    const tooltip = d3.select('#chart')
+    // Create tooltip div with absolute positioning
+    const tooltip = chartContainer
         .append('div')
         .attr('class', 'tooltip')
+        .style('position', 'absolute')
+        .style('pointer-events', 'none')
         .style('opacity', 0);
 
-    // Create the SVG container with viewBox
-    const svg = d3.select('#chart')
+    // Create the SVG container with fixed aspect ratio
+    const svg = chartContainer
         .append('svg')
+        .attr('width', width)
+        .attr('height', height)
         .attr('viewBox', `0 0 ${width} ${height}`)
-        .style('width', '100%')
+        .style('display', 'block')  // Prevent inline spacing issues
+        .style('max-width', '100%')
         .style('height', 'auto')
         .append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
 
     // Add title and subtitle with adjusted positioning
     const titleGroup = svg.append('g')
-        .attr('transform', `translate(${chartWidth/2}, ${-margin.top/2})`);  // Moved title up by removing +20
+        .attr('transform', `translate(${chartWidth/2}, ${-margin.top/2 + 10})`);  // Adjusted title position
 
     // Calculate responsive font size based on chart width
-    const titleFontSize = Math.max(16, Math.min(22, width / 40));  // Scales between 16px and 24px
+    const titleFontSize = Math.max(14, Math.min(18, width / 50));  // Reduced font size range
 
     titleGroup.append('text')
         .attr('class', 'chart-title')
@@ -63,7 +77,7 @@ function createVisualization(width, height, filterType = 'all') {
 
     // Add legends at the top left with improved responsive positioning
     const legendGroup = svg.append('g')
-        .attr('transform', `translate(0, ${-margin.top/2 + 70})`);  // Increased offset from 50 to 70
+        .attr('transform', `translate(0, ${-margin.top/2 + 40})`);  // Reduced spacing
 
     // Legend for locally based
     legendGroup.append('text')
@@ -257,8 +271,8 @@ function createVisualization(width, height, filterType = 'all') {
     // Create and start the simulation
     const simulation = d3.forceSimulation(data)
         .force('x', d3.forceX(d => xScale(d.fPercentage)).strength(1))
-        .force('y', d3.forceY(chartHeight * 0.6).strength(0.1))  // Move center of force to 60% of chart height
-        .force('collision', d3.forceCollide().radius(d => sizeScale(d.totalAttorney) + 2).strength(0.8))
+        .force('y', d3.forceY(chartHeight * 0.5).strength(0.1))  // Moved dots up slightly
+        .force('collision', d3.forceCollide().radius(d => sizeScale(d.totalAttorney) + 1).strength(0.8))  // Reduced collision padding
         .alphaDecay(0.01);
 
     // Update dot positions on each tick of the simulation
@@ -292,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get the initial size of the container
     const container = document.getElementById('chart');
     const width = Math.min(1200, container.clientWidth);
-    const height = Math.min(500, window.innerHeight * 0.7);
+    const height = Math.min(500, window.innerHeight * 0.7);  // Restored to original larger height
 
     // Initial creation
     createVisualization(width, height, 'all');
@@ -316,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
             const newWidth = Math.min(1200, container.clientWidth);
-            const newHeight = Math.min(500, window.innerHeight * 0.7);
+            const newHeight = Math.min(500, window.innerHeight * 0.7);  // Match initial larger height
             const activeType = document.querySelector('.tab-button.active').dataset.type;
             createVisualization(newWidth, newHeight, activeType);
         }, 250);

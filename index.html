@@ -19,11 +19,12 @@
         .chart-container {
             width: 100%;
             max-width: 1200px;
-            margin: 0 auto;
-            background-color: #fff;
-            position: relative;
+            margin: 1em auto;
             padding: 0;
             box-sizing: border-box;
+            font-family: "Roboto", sans-serif !important;
+            line-height: 1.4 !important;
+            font-size: 14px !important;
         }
         .dot {
             opacity: 0.7;
@@ -35,22 +36,23 @@
         }
         .axis-label {
             font-size: 12px;
+            fill: #666;
         }
         .center-line {
             stroke: #999;
             stroke-dasharray: 4;
         }
         .tooltip {
-            position: absolute;
+            position: absolute !important;
+            z-index: 1000;
             padding: 10px;
-            background: rgba(255, 255, 255, 0.95);
+            background: white;
             border: 1px solid #ddd;
             border-radius: 4px;
             pointer-events: none;
-            font-size: 14px;
+            font-size: 14px !important;
+            line-height: 1.4 !important;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            max-width: 300px;
-            z-index: 1000;
         }
         .tooltip .firm-name {
             font-weight: bold;
@@ -68,19 +70,20 @@
 
         .tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 8px;
+            margin-bottom: 8px;
             padding-left: 40px;
         }
         .tab-button {
-            padding: 6px 10px;
-            border: 2px solid #4e79a7;
+            padding: 4px 8px;
+            border: 1.5px solid #4e79a7;
             background: none;
             color: #4e79a7;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             border-radius: 3px;
             transition: all 0.3s ease;
+            font-family: inherit;
         }
         .tab-button.active {
             background: #4e79a7;
@@ -93,13 +96,20 @@
         #chart {
             width: 100%;
             position: relative;
+            margin: 0 auto;
+            display: block !important;
+            box-sizing: border-box !important;
+            overflow: visible !important;
         }
         @media (max-width: 768px) {
             body {
                 padding: 10px;
             }
+            .chart-container {
+                margin: 0.5em auto;
+            }
             .chart-title {
-                font-size: 16px;
+                font-size: 14px;
             }
             .chart-subtitle {
                 font-size: 12px;
@@ -111,6 +121,23 @@
             .tooltip .firm-name {
                 font-size: 14px;
             }
+            .tabs {
+                padding-left: 20px;
+            }
+        }
+        /* Ensure SVG text matches article style */
+        svg text {
+            font-family: "Roboto", sans-serif !important;
+            line-height: 1.4 !important;
+            fill: #333 !important;
+        }
+        /* Reset any CMS margins on chart elements */
+        .chart-title,
+        .axis-label,
+        .legend text {
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: normal !important;
         }
     </style>
 </head>
