@@ -15,9 +15,9 @@ function createVisualization(width, height, filterType = 'all') {
     // Set up the chart dimensions with adjusted margins
     const margin = { 
         top: width < 600 ? 120 : 100,    // Reduced top margin
-        right: 30,
-        bottom: 40,  // Reduced bottom margin
-        left: 40
+        right: 10,
+        bottom: 50,  // Reduced bottom margin
+        left: 10
     };
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
@@ -60,7 +60,7 @@ function createVisualization(width, height, filterType = 'all') {
         .append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
 
-    // Add title and subtitle with adjusted positioning
+    // Add title with adjusted positioning
     const titleGroup = svg.append('g')
         .attr('transform', `translate(${chartWidth/2}, ${-margin.top/2 + 10})`);  // Adjusted title position
 
@@ -72,7 +72,7 @@ function createVisualization(width, height, filterType = 'all') {
         .attr('text-anchor', 'middle')
         .attr('y', 0)
         .style('font-size', `${titleFontSize}px`)
-        .style('font-weight', 'normal')
+        .style('font-weight', 'bold')
         .text('Distribution of Sacramento-area law firms by gender and size');
 
     // Add legends at the top left with improved responsive positioning
