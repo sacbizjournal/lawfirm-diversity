@@ -12,11 +12,11 @@ function createVisualization(width, height, filterType = 'all') {
     // Get data from global scope
     let fullData = window.lawFirmsData;
     
-    // Set up the chart dimensions with adjusted margins
+    // Set up the chart dimensions with fixed margins
     const margin = { 
-        top: width < 600 ? 120 : 100,    // Reduced top margin
-        right: 10,
-        bottom: 50,  // Reduced bottom margin
+        top: 120,
+        right: 20,
+        bottom: 50,
         left: 10
     };
     const chartWidth = width - margin.left - margin.right;
@@ -48,87 +48,83 @@ function createVisualization(width, height, filterType = 'all') {
         .style('pointer-events', 'none')
         .style('opacity', 0);
 
-    // Create the SVG container with fixed aspect ratio
+    // Create the SVG container
     const svg = chartContainer
         .append('svg')
         .attr('width', width)
         .attr('height', height)
-        .attr('viewBox', `0 0 ${width} ${height}`)
-        .style('display', 'block')  // Prevent inline spacing issues
+        .style('display', 'block')
         .style('max-width', '100%')
-        .style('height', 'auto')
         .append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
 
     // Add title with adjusted positioning
     const titleGroup = svg.append('g')
-        .attr('transform', `translate(${chartWidth/2}, ${-margin.top/2 + 10})`);  // Adjusted title position
-
-    // Calculate responsive font size based on chart width
-    const titleFontSize = Math.max(14, Math.min(18, width / 50));  // Reduced font size range
+        .attr('transform', `translate(${chartWidth/2}, ${-margin.top/2})`);
 
     titleGroup.append('text')
         .attr('class', 'chart-title')
         .attr('text-anchor', 'middle')
         .attr('y', 0)
-        .style('font-size', `${titleFontSize}px`)
+        .style('font-size', `${Math.max(14, Math.min(18, width / 50))}px`)
         .style('font-weight', 'bold')
         .text('Distribution of Sacramento-area law firms by gender and size');
 
-    // Add legends at the top left with improved responsive positioning
+    // Add legends at the top with more space
     const legendGroup = svg.append('g')
-        .attr('transform', `translate(0, ${-margin.top/2 + 40})`);  // Reduced spacing
+        .attr('transform', `translate(0, ${-margin.top/2 + 30})`);
 
     // Legend for locally based
     legendGroup.append('text')
         .attr('x', 0)
-        .attr('y', -15)  // Move text back up above the circles
+        .attr('y', 0)
         .attr('font-weight', 'bold')
         .style('font-size', width < 600 ? '12px' : '14px')
         .text('Location');
 
-    // First row of legends (Location) with adjusted spacing
-    const locationLegend = legendGroup.append('g');
+    // First row of legends (Location)
     const locationSpacing = width < 600 ? 90 : 120;
+    const locationLegend = legendGroup.append('g')
+        .attr('transform', 'translate(0, 25)');
 
     locationLegend.append('circle')
-        .attr('cx', 2)  // Add slight offset to align with text
+        .attr('cx', 2)
         .attr('cy', 0)
         .attr('r', width < 600 ? 4 : 6)
         .style('fill', '#4e79a7');
 
     locationLegend.append('text')
-        .attr('x', 14)  // Adjusted to maintain same spacing from circle
+        .attr('x', 14)
         .attr('y', 4)
         .style('font-size', width < 600 ? '11px' : '14px')
         .text('Locally based');
 
     locationLegend.append('circle')
-        .attr('cx', locationSpacing + 2)  // Added same offset
+        .attr('cx', locationSpacing + 2)
         .attr('cy', 0)
         .attr('r', width < 600 ? 4 : 6)
         .style('fill', '#e15759');
 
     locationLegend.append('text')
-        .attr('x', locationSpacing + 14)  // Adjusted to maintain same spacing
+        .attr('x', locationSpacing + 14)
         .attr('y', 4)
         .style('font-size', width < 600 ? '11px' : '14px')
         .text('Non-local');
 
-    // Second row of legends (Total Attorneys) with improved spacing
+    // Second row of legends (Total Attorneys)
     const sizeLegend = legendGroup.append('g')
-        .attr('transform', `translate(0, ${width < 600 ? 45 : 50})`);  // Increased vertical spacing for size legend
+        .attr('transform', `translate(0, ${width < 600 ? 70 : 80})`);
 
     sizeLegend.append('text')
         .attr('x', 0)
-        .attr('y', -15)  // Increased negative value to move text up more
+        .attr('y', -15)
         .attr('font-weight', 'bold')
         .style('font-size', width < 600 ? '12px' : '14px')
         .text('Total attorneys');
 
-    const sizeLegendValues = [75, 30, 5];  // Updated values
+    const sizeLegendValues = [75, 30, 5];
     const maxRadius = sizeScale(sizeLegendValues[0]);
-    const baseY = maxRadius + 30;  // Increased from 20 to 30 to move circles down
+    const baseY = maxRadius + 30;
     const centerX = maxRadius + 10;
 
     // Create circles from largest to smallest
@@ -138,27 +134,27 @@ function createVisualization(width, height, filterType = 'all') {
         // Add circle - align all circles at the bottom
         sizeLegend.append('circle')
             .attr('cx', centerX)
-            .attr('cy', baseY - radius)  // Adjust cy to align bottom edges
+            .attr('cy', baseY - radius)
             .attr('r', radius)
             .style('fill', 'none')
             .style('stroke', '#666')
             .style('stroke-width', '1px');
 
-        // Add dashed line - start from top edge of circle
+        // Add dashed line
         sizeLegend.append('line')
-            .attr('x1', centerX)  // Start from center x
-            .attr('y1', baseY - radius * 2)  // Start from top of circle
-            .attr('x2', centerX + maxRadius + 20)  // Extend line to the right
-            .attr('y2', baseY - radius * 2)  // Keep line horizontal
+            .attr('x1', centerX)
+            .attr('y1', baseY - radius * 2)
+            .attr('x2', centerX + maxRadius + 20)
+            .attr('y2', baseY - radius * 2)
             .style('stroke', '#666')
             .style('stroke-width', '1px')
-            .style('stroke-dasharray', '2,2');  // Smaller dashes
+            .style('stroke-dasharray', '2,2');
 
         // Add text
         sizeLegend.append('text')
-            .attr('x', centerX + maxRadius + 25)  // Position text at end of line
-            .attr('y', baseY - radius * 2)  // Align with the dashed line
-            .attr('dy', '0.3em')  // Slight vertical adjustment for centering
+            .attr('x', centerX + maxRadius + 25)
+            .attr('y', baseY - radius * 2)
+            .attr('dy', '0.3em')
             .attr('text-anchor', 'start')
             .style('font-size', width < 600 ? '11px' : '14px')
             .text(value);
@@ -170,7 +166,7 @@ function createVisualization(width, height, filterType = 'all') {
         .attr('x1', xScale(0.5))
         .attr('y1', 0)
         .attr('x2', xScale(0.5))
-        .attr('y2', chartHeight)
+        .attr('y2', chartHeight - 30)  // Stop at x-axis position
         .style('stroke', '#999')
         .style('stroke-width', '1px')
         .style('stroke-dasharray', '4');
@@ -179,15 +175,15 @@ function createVisualization(width, height, filterType = 'all') {
     const dotsGroup = svg.append('g')
         .attr('class', 'dots');
 
-    // Initialize the dots with starting positions and transitions
+    // Initialize the dots
     const dots = dotsGroup.selectAll('.dot')
-        .data(data, d => d.name)  // Use firm name as key for smooth transitions
+        .data(data, d => d.name)
         .join(
             enter => enter.append('circle')
                 .attr('class', 'dot')
                 .attr('r', d => sizeScale(d.totalAttorney))
                 .attr('cx', d => xScale(d.fPercentage))
-                .attr('cy', chartHeight * 0.6)  // Move dots down to 60% of chart height
+                .attr('cy', chartHeight * 0.5)
                 .style('fill', d => d.locallyBased === 'Y' ? '#4e79a7' : '#e15759')
                 .style('stroke', '#fff')
                 .style('stroke-width', '1px')
@@ -268,18 +264,18 @@ function createVisualization(width, height, filterType = 'all') {
             .style('opacity', 0);
     });
 
-    // Create and start the simulation
+    // Create and start the simulation with adjusted vertical position
     const simulation = d3.forceSimulation(data)
         .force('x', d3.forceX(d => xScale(d.fPercentage)).strength(1))
-        .force('y', d3.forceY(chartHeight * 0.5).strength(0.1))  // Moved dots up slightly
-        .force('collision', d3.forceCollide().radius(d => sizeScale(d.totalAttorney) + 1).strength(0.8))  // Reduced collision padding
+        .force('y', d3.forceY(chartHeight * 0.5).strength(0.1))  // Moved dots down
+        .force('collision', d3.forceCollide().radius(d => sizeScale(d.totalAttorney) + 1).strength(0.8))
         .alphaDecay(0.01);
 
     // Update dot positions on each tick of the simulation
     simulation.on('tick', () => {
         dots
             .attr('cx', d => Math.max(sizeScale(d.totalAttorney), Math.min(chartWidth - sizeScale(d.totalAttorney), d.x)))
-            .attr('cy', d => Math.max(sizeScale(d.totalAttorney), Math.min(chartHeight - sizeScale(d.totalAttorney), d.y)));
+            .attr('cy', d => Math.max(sizeScale(d.totalAttorney), Math.min(chartHeight - sizeScale(d.totalAttorney) - 20, d.y)));
     });
 
     // Add x-axis
@@ -288,14 +284,14 @@ function createVisualization(width, height, filterType = 'all') {
         .ticks(10);
     
     svg.append('g')
-        .attr('transform', `translate(0,${chartHeight})`)
+        .attr('transform', `translate(0,${chartHeight - 20})`)
         .call(xAxis);
 
-    // Add labels
+    // Add x-axis label
     svg.append('text')
         .attr('class', 'axis-label')
         .attr('x', chartWidth / 2)
-        .attr('y', chartHeight + 40)
+        .attr('y', chartHeight + 10)
         .attr('text-anchor', 'middle')
         .style('font-size', '14px')
         .text('Percentage of female attorneys');
@@ -306,7 +302,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get the initial size of the container
     const container = document.getElementById('chart');
     const width = Math.min(1200, container.clientWidth);
-    const height = Math.min(500, window.innerHeight * 0.7);  // Restored to original larger height
+    const height = 500;  // Fixed height
+
+    // Store initial dimensions
+    const initialDimensions = { width, height };
 
     // Initial creation
     createVisualization(width, height, 'all');
@@ -319,8 +318,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.classList.remove('active'));
             button.classList.add('active');
 
-            // Recreate visualization with filter
-            createVisualization(width, height, button.dataset.type);
+            // Always use initial dimensions
+            createVisualization(initialDimensions.width, initialDimensions.height, button.dataset.type);
         });
     });
 
@@ -330,9 +329,9 @@ document.addEventListener('DOMContentLoaded', () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
             const newWidth = Math.min(1200, container.clientWidth);
-            const newHeight = Math.min(500, window.innerHeight * 0.7);  // Match initial larger height
+            // Keep height fixed
             const activeType = document.querySelector('.tab-button.active').dataset.type;
-            createVisualization(newWidth, newHeight, activeType);
+            createVisualization(newWidth, initialDimensions.height, activeType);
         }, 250);
     });
 }); 
