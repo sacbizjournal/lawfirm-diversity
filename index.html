@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Law Firms Gender Distribution</title>
+    <title>Sacramento law firms gender distribution</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: "Roboto", sans-serif;
             margin: 0;
             padding: 20px;
             background-color: #fff;
@@ -19,6 +22,8 @@
             margin: 0 auto;
             background-color: #fff;
             position: relative;
+            padding: 0;
+            box-sizing: border-box;
         }
         .dot {
             opacity: 0.7;
@@ -50,7 +55,7 @@
         .tooltip .firm-name {
             font-weight: bold;
             margin-bottom: 5px;
-            font-size: 16px;
+            font-size: 15px;
         }
         .tooltip .info-row {
             margin: 3px 0;
@@ -60,9 +65,34 @@
             font-size: 20px;
             font-weight: bold;
         }
-        .chart-subtitle {
-            font-size: 14px;
-            color: #666;
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding-left: 40px;
+        }
+        .tab-button {
+            padding: 6px 10px;
+            border: 2px solid #4e79a7;
+            background: none;
+            color: #4e79a7;
+            cursor: pointer;
+            font-size: 13px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            background: #4e79a7;
+            color: white;
+        }
+        .tab-button:hover {
+            background: #4e79a7;
+            color: white;
+        }
+        #chart {
+            width: 100%;
+            position: relative;
         }
         @media (max-width: 768px) {
             body {
@@ -85,7 +115,14 @@
     </style>
 </head>
 <body>
-    <div class="chart-container" id="chart"></div>
+    <div class="chart-container">
+        <div class="tabs">
+            <button class="tab-button active" data-type="all">All firms</button>
+            <button class="tab-button" data-type="local">Locally based</button>
+            <button class="tab-button" data-type="nonlocal">Non-local</button>
+        </div>
+        <div id="chart"></div>
+    </div>
     <!-- Load data first, then the visualization script -->
     <script src="data.js"></script>
     <script src="script.js"></script>

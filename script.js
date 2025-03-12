@@ -1,14 +1,19 @@
 // Create the visualization with given dimensions
-function createVisualization(width, height) {
+function createVisualization(width, height, filterType = 'all') {
     // Clear any existing visualization
     d3.select('#chart').selectAll('*').remove();
 
-    // Get data from global scope
-    const data = window.lawFirmsData;
+    // Get data from global scope and filter based on type
+    let data = window.lawFirmsData;
+    if (filterType === 'local') {
+        data = data.filter(d => d.locallyBased === 'Y');
+    } else if (filterType === 'nonlocal') {
+        data = data.filter(d => d.locallyBased === 'N');
+    }
     
     // Set up the chart dimensions with adjusted margins
     const margin = { 
-        top: width < 600 ? 180 : 140,    // Increased top margin further
+        top: width < 600 ? 160 : 120,    // Increased top margin to prevent overlap
         right: 40,
         bottom: 60,
         left: 40
@@ -43,19 +48,22 @@ function createVisualization(width, height) {
 
     // Add title and subtitle with adjusted positioning
     const titleGroup = svg.append('g')
-        .attr('transform', `translate(${chartWidth/2}, ${-margin.top/2 - (width < 600 ? 35 : 45)})`);
+        .attr('transform', `translate(${chartWidth/2}, ${-margin.top/2})`);  // Moved title up by removing +20
+
+    // Calculate responsive font size based on chart width
+    const titleFontSize = Math.max(16, Math.min(22, width / 40));  // Scales between 16px and 24px
 
     titleGroup.append('text')
         .attr('class', 'chart-title')
         .attr('text-anchor', 'middle')
         .attr('y', 0)
-        .style('font-size', width < 600 ? '16px' : '20px')
-        .style('font-weight', 'bold')
+        .style('font-size', `${titleFontSize}px`)
+        .style('font-weight', 'normal')
         .text('Distribution of Sacramento-area law firms by gender and size');
 
     // Add legends at the top left with improved responsive positioning
     const legendGroup = svg.append('g')
-        .attr('transform', `translate(0, ${-margin.top/2 + (width < 600 ? 35 : 30)})`);
+        .attr('transform', `translate(0, ${-margin.top/2 + 70})`);  // Increased offset from 50 to 70
 
     // Legend for locally based
     legendGroup.append('text')
@@ -79,7 +87,7 @@ function createVisualization(width, height) {
         .attr('x', 14)  // Adjusted to maintain same spacing from circle
         .attr('y', 4)
         .style('font-size', width < 600 ? '11px' : '14px')
-        .text('Locally Based');
+        .text('Locally based');
 
     locationLegend.append('circle')
         .attr('cx', locationSpacing + 2)  // Added same offset
@@ -91,44 +99,55 @@ function createVisualization(width, height) {
         .attr('x', locationSpacing + 14)  // Adjusted to maintain same spacing
         .attr('y', 4)
         .style('font-size', width < 600 ? '11px' : '14px')
-        .text('Non-Local');
+        .text('Non-local');
 
     // Second row of legends (Total Attorneys) with improved spacing
     const sizeLegend = legendGroup.append('g')
-        .attr('transform', `translate(0, ${width < 600 ? 35 : 40})`);
+        .attr('transform', `translate(0, ${width < 600 ? 45 : 50})`);  // Increased vertical spacing for size legend
 
     sizeLegend.append('text')
         .attr('x', 0)
-        .attr('y', -5)
+        .attr('y', -15)  // Increased negative value to move text up more
         .attr('font-weight', 'bold')
         .style('font-size', width < 600 ? '12px' : '14px')
-        .text('Total Attorneys');
+        .text('Total attorneys');
 
-    const sizeLegendValues = [75, 40, 10];
-    let currentX = 0;
-    const circleSpacing = width < 600 ? 10 : 20;  // Reduced spacing values
+    const sizeLegendValues = [75, 30, 5];  // Updated values
+    const maxRadius = sizeScale(sizeLegendValues[0]);
+    const baseY = maxRadius + 30;  // Increased from 20 to 30 to move circles down
+    const centerX = maxRadius + 10;
 
-    sizeLegendValues.forEach((value, i) => {
+    // Create circles from largest to smallest
+    sizeLegendValues.forEach((value) => {
         const radius = sizeScale(value);
         
-        // Add circle with adjusted positioning
+        // Add circle - align all circles at the bottom
         sizeLegend.append('circle')
-            .attr('cx', currentX + radius)
-            .attr('cy', radius)
+            .attr('cx', centerX)
+            .attr('cy', baseY - radius)  // Adjust cy to align bottom edges
             .attr('r', radius)
             .style('fill', 'none')
-            .style('stroke', '#666');
+            .style('stroke', '#666')
+            .style('stroke-width', '1px');
 
-        // Add label with improved responsive positioning
+        // Add dashed line - start from top edge of circle
+        sizeLegend.append('line')
+            .attr('x1', centerX)  // Start from center x
+            .attr('y1', baseY - radius * 2)  // Start from top of circle
+            .attr('x2', centerX + maxRadius + 20)  // Extend line to the right
+            .attr('y2', baseY - radius * 2)  // Keep line horizontal
+            .style('stroke', '#666')
+            .style('stroke-width', '1px')
+            .style('stroke-dasharray', '2,2');  // Smaller dashes
+
+        // Add text
         sizeLegend.append('text')
-            .attr('x', currentX)
-            .attr('y', radius * 2 + (width < 600 ? 10 : 15))
+            .attr('x', centerX + maxRadius + 25)  // Position text at end of line
+            .attr('y', baseY - radius * 2)  // Align with the dashed line
+            .attr('dy', '0.3em')  // Slight vertical adjustment for centering
             .attr('text-anchor', 'start')
             .style('font-size', width < 600 ? '11px' : '14px')
             .text(value);
-
-        // Update X position with tighter spacing
-        currentX += (radius * 2) + circleSpacing;  // Removed additional radius from spacing
     });
 
     // Draw the center line
@@ -146,18 +165,34 @@ function createVisualization(width, height) {
     const dotsGroup = svg.append('g')
         .attr('class', 'dots');
 
-    // Initialize the dots with starting positions
+    // Initialize the dots with starting positions and transitions
     const dots = dotsGroup.selectAll('.dot')
-        .data(data)
-        .join('circle')
-        .attr('class', 'dot')
-        .attr('r', d => sizeScale(d.totalAttorney))
-        .attr('cx', d => xScale(d.fPercentage))
-        .attr('cy', chartHeight / 2)
-        .style('fill', d => d.locallyBased === 'Y' ? '#4e79a7' : '#e15759')
-        .style('stroke', '#fff')
-        .style('stroke-width', '1px')
-        .style('opacity', 0.7);
+        .data(data, d => d.name)  // Use firm name as key for smooth transitions
+        .join(
+            enter => enter.append('circle')
+                .attr('class', 'dot')
+                .attr('r', d => sizeScale(d.totalAttorney))
+                .attr('cx', d => xScale(d.fPercentage))
+                .attr('cy', chartHeight * 0.6)  // Move dots down to 60% of chart height
+                .style('fill', d => d.locallyBased === 'Y' ? '#4e79a7' : '#e15759')
+                .style('stroke', '#fff')
+                .style('stroke-width', '1px')
+                .style('opacity', 0)
+                .call(enter => enter.transition()
+                    .duration(750)
+                    .style('opacity', 0.7)),
+            update => update
+                .call(update => update.transition()
+                    .duration(750)
+                    .attr('r', d => sizeScale(d.totalAttorney))
+                    .attr('cx', d => xScale(d.fPercentage))
+                    .style('fill', d => d.locallyBased === 'Y' ? '#4e79a7' : '#e15759')),
+            exit => exit
+                .call(exit => exit.transition()
+                    .duration(750)
+                    .style('opacity', 0)
+                    .remove())
+        );
 
     // Add mouse events for tooltips
     dots.on('mouseover', function(event, d) {
@@ -174,9 +209,9 @@ function createVisualization(width, height) {
             
         tooltip.html(`
             <div class="firm-name">${d.name}</div>
-            <div class="info-row">Total Attorneys: ${d.totalAttorney}</div>
-            <div class="info-row">Female Attorneys: ${(d.fPercentage * 100).toFixed(1)}%</div>
-            <div class="info-row">${d.locallyBased === 'Y' ? 'Locally Based' : 'Non-Local'}</div>
+            <div class="info-row">Total attorneys: ${d.totalAttorney}</div>
+            <div class="info-row">Female attorneys: ${(d.fPercentage * 100)}%</div>
+            <div class="info-row">${d.locallyBased === 'Y' ? 'Locally based' : 'Not locally based'}</div>
         `);
 
         // Get window width and tooltip width
@@ -222,7 +257,7 @@ function createVisualization(width, height) {
     // Create and start the simulation
     const simulation = d3.forceSimulation(data)
         .force('x', d3.forceX(d => xScale(d.fPercentage)).strength(1))
-        .force('y', d3.forceY(chartHeight / 2).strength(0.1))
+        .force('y', d3.forceY(chartHeight * 0.6).strength(0.1))  // Move center of force to 60% of chart height
         .force('collision', d3.forceCollide().radius(d => sizeScale(d.totalAttorney) + 2).strength(0.8))
         .alphaDecay(0.01);
 
@@ -249,26 +284,41 @@ function createVisualization(width, height) {
         .attr('y', chartHeight + 40)
         .attr('text-anchor', 'middle')
         .style('font-size', '14px')
-        .text('Percentage of Female Attorneys');
+        .text('Percentage of female attorneys');
 }
 
-// Initial creation
+// Initial creation and tab handling
 document.addEventListener('DOMContentLoaded', () => {
     // Get the initial size of the container
     const container = document.getElementById('chart');
-    const width = Math.min(1200, container.clientWidth); // Cap maximum width
-    const height = Math.min(500, window.innerHeight * 0.7); // Cap maximum height
+    const width = Math.min(1200, container.clientWidth);
+    const height = Math.min(500, window.innerHeight * 0.7);
 
-    createVisualization(width, height);
+    // Initial creation
+    createVisualization(width, height, 'all');
 
-    // Add resize listener
+    // Add tab click handlers
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', () => {
+            // Update active state
+            document.querySelectorAll('.tab-button').forEach(btn => 
+                btn.classList.remove('active'));
+            button.classList.add('active');
+
+            // Recreate visualization with filter
+            createVisualization(width, height, button.dataset.type);
+        });
+    });
+
+    // Add resize listener with debouncing
     let resizeTimer;
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
             const newWidth = Math.min(1200, container.clientWidth);
             const newHeight = Math.min(500, window.innerHeight * 0.7);
-            createVisualization(newWidth, newHeight);
-        }, 250); // Debounce resize events
+            const activeType = document.querySelector('.tab-button.active').dataset.type;
+            createVisualization(newWidth, newHeight, activeType);
+        }, 250);
     });
 }); 
