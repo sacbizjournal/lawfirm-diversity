@@ -16,7 +16,7 @@ function createVisualization(width, height, filterType = 'all') {
     const margin = { 
         top: 30,
         right: 30,
-        bottom: 50,
+        bottom: 40,
         left: 10
     };
     const chartWidth = width - margin.left - margin.right;
@@ -159,7 +159,7 @@ function createVisualization(width, height, filterType = 'all') {
             .attr('y', baseY - radius * 2)
             .attr('dy', '0.3em')
             .attr('text-anchor', 'start')
-            .style('font-size', width < 600 ? '11px' : '14px')
+            .style('font-size', width < 600 ? '10px' : '12px')
             .text(value);
     });
 
@@ -333,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get the initial size of the container
     const container = document.getElementById('chart');
     const width = Math.min(1200, container.clientWidth);
-    const height = 500;  // Fixed height
+    const height = 400;  // Fixed height
 
     // Store initial dimensions
     const initialDimensions = { width, height };
