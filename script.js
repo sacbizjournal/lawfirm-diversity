@@ -12,9 +12,9 @@ function createVisualization(width, height, filterType = 'all') {
     // Get data from global scope
     let fullData = window.lawFirmsData;
     
-    // Set up the chart dimensions with fixed margins
+    // Set up the chart dimensions 
     const margin = { 
-        top: 120,
+        top: 30,
         right: 30,
         bottom: 50,
         left: 10
@@ -60,30 +60,31 @@ function createVisualization(width, height, filterType = 'all') {
         .append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
 
-    // Add title with adjusted positioning
-    const titleGroup = svg.append('g')
-        .attr('transform', `translate(${chartWidth/2}, ${-margin.top/2})`);
+    // // Add title with adjusted positioning
+    // const titleGroup = svg.append('g')
+    //     .attr('transform', `translate(${chartWidth/2}, ${-margin.top/2})`);
 
-    titleGroup.append('text')
-        .attr('class', 'chart-title')
-        .attr('text-anchor', 'middle')
-        .attr('y', 0)
-        .style('font-size', `${Math.max(14, Math.min(18, width / 50))}px`)
-        .style('font-weight', 'bold')
-        .text('Distribution of Sacramento-area law firms by gender and size');
+    // titleGroup.append('text')
+    //     .attr('class', 'chart-title')
+    //     .attr('text-anchor', 'middle')
+    //     .attr('y', 0)
+    //     .style('font-size', `${Math.max(14, Math.min(18, width / 50))}px`)
+    //     .style('font-weight', 'bold')
+    //     .text('Distribution of Sacramento-area law firms by gender and size');
 
-    // Add legends at the top with more space
+    // Add legends at the top 
     const legendGroup = svg.append('g')
-        .attr('transform', `translate(0, ${-margin.top/2 + 30})`);
+        .attr('transform', `translate(${chartWidth - 150}, ${-margin.top + 5})`);
+
+
+    // legendGroup.append('text')
+    //     .attr('x', 0)
+    //     .attr('y', 0)
+    //     .attr('font-weight', 'bold')
+    //     .style('font-size', width < 600 ? '12px' : '14px')
+    //     .text('Gender');
 
     // Legend for gender
-    legendGroup.append('text')
-        .attr('x', 0)
-        .attr('y', 0)
-        .attr('font-weight', 'bold')
-        .style('font-size', width < 600 ? '12px' : '14px')
-        .text('Gender');
-
     // First row of legends (Gender)
     const genderSpacing = width < 600 ? 90 : 80;
     const genderLegend = legendGroup.append('g')
@@ -300,8 +301,8 @@ function createVisualization(width, height, filterType = 'all') {
             const malePercentage = Math.round((1 - d) * 100);
             const femalePercentage = Math.round(d * 100);
             if (d === 0.5) return '50/50';
-            if (d === 0) return `${malePercentage}% Male`;
-            if (d === 1) return `${femalePercentage}% Female`;
+            if (d === 0) return `${malePercentage}% \nMale`;
+            if (d === 1) return `${femalePercentage}% \nFemale`;
             return d < 0.5 ? `${malePercentage}%` : `${femalePercentage}%`;
         })
         .ticks(10);
