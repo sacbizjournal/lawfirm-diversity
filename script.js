@@ -5,7 +5,7 @@ function createVisualization(width, height, filterType = 'all') {
         .style('position', 'relative')
         .style('width', '100%')
         .style('height', 'auto')
-        .style('overflow', 'hidden');
+        .style('overflow', 'visible');
         
     chartContainer.selectAll('*').remove();
 
@@ -15,7 +15,7 @@ function createVisualization(width, height, filterType = 'all') {
     // Set up the chart dimensions with fixed margins
     const margin = { 
         top: 120,
-        right: 20,
+        right: 30,
         bottom: 50,
         left: 10
     };
@@ -27,7 +27,7 @@ function createVisualization(width, height, filterType = 'all') {
         .domain([0, d3.max(fullData, d => d.totalAttorney)])
         .range([width < 600 ? 2 : 4, Math.min(width < 600 ? 15 : 25, chartWidth / 40)]);
 
-    // Then filter data based on type
+    // filter data based on type
     let data = fullData;
     if (filterType === 'local') {
         data = data.filter(d => d.locallyBased === 'Y');
@@ -48,13 +48,15 @@ function createVisualization(width, height, filterType = 'all') {
         .style('pointer-events', 'none')
         .style('opacity', 0);
 
-    // Create the SVG container
+    // Create the SVG container with proper viewBox
     const svg = chartContainer
         .append('svg')
         .attr('width', width)
         .attr('height', height)
+        .attr('viewBox', [0, 0, width, height])
         .style('display', 'block')
         .style('max-width', '100%')
+        .style('overflow', 'visible')
         .append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
 
@@ -74,42 +76,42 @@ function createVisualization(width, height, filterType = 'all') {
     const legendGroup = svg.append('g')
         .attr('transform', `translate(0, ${-margin.top/2 + 30})`);
 
-    // Legend for locally based
+    // Legend for gender
     legendGroup.append('text')
         .attr('x', 0)
         .attr('y', 0)
         .attr('font-weight', 'bold')
         .style('font-size', width < 600 ? '12px' : '14px')
-        .text('Location');
+        .text('Gender');
 
-    // First row of legends (Location)
-    const locationSpacing = width < 600 ? 90 : 120;
-    const locationLegend = legendGroup.append('g')
+    // First row of legends (Gender)
+    const genderSpacing = width < 600 ? 90 : 80;
+    const genderLegend = legendGroup.append('g')
         .attr('transform', 'translate(0, 25)');
 
-    locationLegend.append('circle')
+    genderLegend.append('circle')
         .attr('cx', 2)
         .attr('cy', 0)
         .attr('r', width < 600 ? 4 : 6)
-        .style('fill', '#4e79a7');
+        .style('fill', '#347acc');
 
-    locationLegend.append('text')
+    genderLegend.append('text')
         .attr('x', 14)
         .attr('y', 4)
         .style('font-size', width < 600 ? '11px' : '14px')
-        .text('Locally based');
+        .text('Male');
 
-    locationLegend.append('circle')
-        .attr('cx', locationSpacing + 2)
+    genderLegend.append('circle')
+        .attr('cx', genderSpacing + 2)
         .attr('cy', 0)
         .attr('r', width < 600 ? 4 : 6)
-        .style('fill', '#e15759');
+        .style('fill', '#ff4c4c');
 
-    locationLegend.append('text')
-        .attr('x', locationSpacing + 14)
+    genderLegend.append('text')
+        .attr('x', genderSpacing + 14)
         .attr('y', 4)
         .style('font-size', width < 600 ? '11px' : '14px')
-        .text('Non-local');
+        .text('Female');
 
     // Second row of legends (Total Attorneys)
     const sizeLegend = legendGroup.append('g')
@@ -175,7 +177,16 @@ function createVisualization(width, height, filterType = 'all') {
     const dotsGroup = svg.append('g')
         .attr('class', 'dots');
 
-    // Initialize the dots
+    // Create color scales for male and female percentages
+    const maleColorScale = d3.scaleLinear()
+        .domain([0.5, 0.3, 0.2])  // 50% to 70% to 80% male
+        .range(['#cccccc', '#6b90d4', '#0066cc']);  // grey to light blue to dark blue
+
+    const femaleColorScale = d3.scaleLinear()
+        .domain([0.5, 0.7, 0.8])  // 50% to 70% to 80% female
+        .range(['#cccccc', '#ff9999', '#ff0000']);  // grey to light red to dark red
+
+    // Initialize the dots with color scheme
     const dots = dotsGroup.selectAll('.dot')
         .data(data, d => d.name)
         .join(
@@ -184,8 +195,10 @@ function createVisualization(width, height, filterType = 'all') {
                 .attr('r', d => sizeScale(d.totalAttorney))
                 .attr('cx', d => xScale(d.fPercentage))
                 .attr('cy', chartHeight * 0.5)
-                .style('fill', d => d.locallyBased === 'Y' ? '#4e79a7' : '#e15759')
-                .style('stroke', '#fff')
+                .style('fill', d => d.fPercentage <= 0.5 ? 
+                    maleColorScale(d.fPercentage) : 
+                    femaleColorScale(d.fPercentage))
+                .style('stroke', '#666666')  // Changed to darker grey
                 .style('stroke-width', '1px')
                 .style('opacity', 0)
                 .call(enter => enter.transition()
@@ -196,7 +209,9 @@ function createVisualization(width, height, filterType = 'all') {
                     .duration(750)
                     .attr('r', d => sizeScale(d.totalAttorney))
                     .attr('cx', d => xScale(d.fPercentage))
-                    .style('fill', d => d.locallyBased === 'Y' ? '#4e79a7' : '#e15759')),
+                    .style('fill', d => d.fPercentage <= 0.5 ? 
+                        maleColorScale(d.fPercentage) : 
+                        femaleColorScale(d.fPercentage))),
             exit => exit
                 .call(exit => exit.transition()
                     .duration(750)
@@ -253,10 +268,11 @@ function createVisualization(width, height, filterType = 'all') {
             .style('left', `${tooltipX}px`)
             .style('top', `${mouseY - 10}px`);
     })
+    // In the mouseout event, update the stroke color to match
     .on('mouseout', function() {
         d3.select(this)
             .style('opacity', 0.7)
-            .style('stroke', '#fff')
+            .style('stroke', '#666666')  // Changed to darker grey
             .style('stroke-width', '1px');
             
         tooltip.transition()
@@ -280,12 +296,26 @@ function createVisualization(width, height, filterType = 'all') {
 
     // Add x-axis
     const xAxis = d3.axisBottom(xScale)
-        .tickFormat(d3.format('.0%'))
+        .tickFormat(d => {
+            const malePercentage = Math.round((1 - d) * 100);
+            const femalePercentage = Math.round(d * 100);
+            if (d === 0.5) return '50/50';
+            if (d === 0) return `${malePercentage}% Male`;
+            if (d === 1) return `${femalePercentage}% Female`;
+            return d < 0.5 ? `${malePercentage}%` : `${femalePercentage}%`;
+        })
         .ticks(10);
     
-    svg.append('g')
+    const xAxisGroup = svg.append('g')
         .attr('transform', `translate(0,${chartHeight - 20})`)
         .call(xAxis);
+
+    // Color the axis labels
+    xAxisGroup.selectAll('.tick text')
+        .style('fill', d => {
+            if (d === 0.5) return '#cccccc';
+            return d < 0.5 ? maleColorScale(d) : femaleColorScale(d);
+        });
 
     // Add x-axis label
     svg.append('text')
@@ -294,7 +324,7 @@ function createVisualization(width, height, filterType = 'all') {
         .attr('y', chartHeight + 10)
         .attr('text-anchor', 'middle')
         .style('font-size', '14px')
-        .text('Percentage of female attorneys');
+        .text('Gender distribution');
 }
 
 // Initial creation and tab handling
@@ -308,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const initialDimensions = { width, height };
 
     // Initial creation
-    createVisualization(width, height, 'all');
+    createVisualization(initialDimensions.width, initialDimensions.height, 'all');
 
     // Add tab click handlers
     document.querySelectorAll('.tab-button').forEach(button => {
@@ -318,8 +348,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.classList.remove('active'));
             button.classList.add('active');
 
-            // Always use initial dimensions
-            createVisualization(initialDimensions.width, initialDimensions.height, button.dataset.type);
+            // Use current container width instead of initial width
+            const currentWidth = Math.min(1200, container.clientWidth);
+            createVisualization(currentWidth, initialDimensions.height, button.dataset.type);
         });
     });
 
@@ -328,10 +359,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
-            const newWidth = Math.min(1200, container.clientWidth);
-            // Keep height fixed
+            const currentWidth = Math.min(1200, container.clientWidth);
             const activeType = document.querySelector('.tab-button.active').dataset.type;
-            createVisualization(newWidth, initialDimensions.height, activeType);
+            createVisualization(currentWidth, initialDimensions.height, activeType);
         }, 250);
     });
-}); 
+});
