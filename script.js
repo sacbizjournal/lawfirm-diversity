@@ -17,7 +17,7 @@ function createVisualization(width, height, filterType = 'all') {
         top: 30,
         right: 30,
         bottom: 30,
-        left: 10
+        left: 30
     };
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
@@ -86,9 +86,9 @@ function createVisualization(width, height, filterType = 'all') {
 
     // Legend for gender
     // First row of legends (Gender)
-    const genderSpacing = width < 600 ? 90 : 80;
+    const genderSpacing = width < 600 ? 70 : 70;
     const genderLegend = legendGroup.append('g')
-        .attr('transform', 'translate(0, 25)');
+        .attr('transform', 'translate(30, 25)');
 
     genderLegend.append('circle')
         .attr('cx', 2)
@@ -116,7 +116,7 @@ function createVisualization(width, height, filterType = 'all') {
 
     // Second row of legends (Total Attorneys)
     const sizeLegend = legendGroup.append('g')
-        .attr('transform', `translate(0, ${width < 600 ? 55 : 65})`);
+        .attr('transform', `translate(${width < 600 ? 40 : 40}, ${width < 600 ? 70 : 70})`);
 
     sizeLegend.append('text')
         .attr('x', 0)
@@ -284,7 +284,7 @@ function createVisualization(width, height, filterType = 'all') {
     // Create and start the simulation with adjusted vertical position
     const simulation = d3.forceSimulation(data)
         .force('x', d3.forceX(d => xScale(d.fPercentage)).strength(1))
-        .force('y', d3.forceY(chartHeight * 0.4).strength(0.1))  // Moved dots down
+        .force('y', d3.forceY(chartHeight * 0.5).strength(0.1))  // Moved dots down
         .force('collision', d3.forceCollide().radius(d => sizeScale(d.totalAttorney) + 1).strength(0.8))
         .alphaDecay(0.01);
 
